@@ -16,14 +16,18 @@ st.set_page_config(page_title="Face Emotion Detection", layout="wide", page_icon
 def load_model_from_drive(file_id):
     url = f"https://drive.google.com/uc?export=download&id={file_id}"
     res = requests.get(url)
+    res.raise_for_status()  # ตรวจสอบว่าโหลดสำเร็จ
     return joblib.load(BytesIO(res.content))
 
-# File ID ของ Google Drive
+# File ID ของ Google Drive (ของคุณ)
 MODEL_ML_ID = "1kKjdFPWTg4I01EGb0vxQLIA3smpHkebn"
 MODEL_NN_ID = "1RfiC2ZGh_idd4cwi2nsNw-2QKW65HZRQ"
 
-ML_PATH = "model/model_ml.pkl"
-NN_PATH = "model/model_nn.pkl"
+# โหลดโมเดล
+with st.spinner("Loading ML model..."):
+    model_ml = load_model_from_drive(MODEL_ML_ID)
+with st.spinner("Loading NN model..."):
+    model_nn = load_model_from_drive(MODEL_NN_ID)
 
 # =========================
 # HEADER
