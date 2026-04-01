@@ -1,7 +1,8 @@
 import streamlit as st
 import numpy as np
-import cv2
 import joblib
+import requests
+from io import BytesIO
 from PIL import Image
 
 # =========================
@@ -10,10 +11,16 @@ from PIL import Image
 st.set_page_config(page_title="Face Emotion Detection", layout="wide", page_icon="😊")
 
 # =========================
-# LOAD MODEL
+# LOAD MODEL FROM GOOGLE DRIVE
 # =========================
-model_ml = joblib.load("model/model_ml.pkl")
-model_nn = joblib.load("model/model_nn.pkl")
+def load_model_from_drive(file_id):
+    url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    res = requests.get(url)
+    return joblib.load(BytesIO(res.content))
+
+# ใส่ File ID ของโมเดลจาก Google Drive
+model_ml = load_model_from_drive("https://drive.google.com/file/d/1kKjdFPWTg4I01EGb0vxQLIA3smpHkebn/view?usp=sharing")
+model_nn = load_model_from_drive("https://drive.google.com/file/d/1RfiC2ZGh_idd4cwi2nsNw-2QKW65HZRQ/view?usp=sharing")
 
 # =========================
 # HEADER
@@ -42,7 +49,6 @@ page = st.sidebar.radio("Menu", [
 # =========================
 if page == "Overview":
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("🎯 Project Goal")
         st.write("""
@@ -54,17 +60,13 @@ if page == "Overview":
         st.metric("Classes", "4+")
     with col2:
         st.subheader("📈 Process Flow")
-        st.info("""
-Image 🖼️ → Preprocessing 🛠️ → Model 🤖 → Prediction 📊 → Web 🌐
-""")
-        
+        st.info("Image 🖼️ → Preprocessing 🛠️ → Model 🤖 → Prediction 📊 → Web 🌐")
 
 # =========================
 # DATASET
 # =========================
 elif page == "Dataset":
     st.header("📂 Dataset Information")
-
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("Image Dataset")
@@ -79,16 +81,12 @@ elif page == "Dataset":
 - เพิ่ม noise / Missing Values 🌪️  
 - ใช้ในการทดลองและจำลองข้อมูลจริง 🧪
 """)
-    
-    
-    
 
 # =========================
 # DATA PREP
 # =========================
 elif page == "Data Preparation":
     st.header("🛠️ Data Preparation Steps")
-
     steps = [
         "Convert to Grayscale ⚪",
         "Resize to 48x48 📏",
@@ -97,11 +95,9 @@ elif page == "Data Preparation":
         "Handle missing values (Mean Imputation) 💡",
         "Normalize pixel values 🔢"
     ]
-
     for i, step in enumerate(steps):
         st.write(f"{i+1}. {step}")
         st.progress((i+1)/len(steps))
-
     st.info("💡 เหตุผล: ข้อมูลในโลกจริงมักไม่สมบูรณ์ จึงต้องเตรียมข้อมูลก่อนใช้")
 
 # =========================
@@ -109,13 +105,11 @@ elif page == "Data Preparation":
 # =========================
 elif page == "Machine Learning":
     st.header("🤖 Machine Learning (Ensemble)")
-
     st.subheader("Models Used")
     st.write("- Decision Tree 🌳")
     st.write("- Random Forest 🌲")
     st.write("- K-Nearest Neighbors (KNN) 👥")
     st.info("Ensemble Learning คือการรวมหลายโมเดลเพื่อเพิ่มความแม่นยำ ลด Overfitting และเพิ่มเสถียรภาพ 💪")
-
     st.subheader("Training Result")
     st.bar_chart({
         "Model": ["Decision Tree", "Random Forest", "KNN"],
@@ -128,7 +122,6 @@ elif page == "Machine Learning":
 # =========================
 elif page == "Neural Network":
     st.header("🧠 Neural Network Model (MLP)")
-
     st.subheader("Architecture")
     st.code("""
 Input Layer (2304 nodes)
@@ -139,7 +132,6 @@ Hidden Layer 2 (64 nodes)
 ↓
 Output Layer (4 classes)
 """)
-
     st.subheader("Training Result")
     st.line_chart([60,70,80,85,90])
     st.success("Approx. Accuracy: 85-92% ✅")
@@ -149,7 +141,6 @@ Output Layer (4 classes)
 # =========================
 elif page == "Test ML":
     st.header("🖼️ Test Machine Learning Model")
-
     uploaded = st.file_uploader("Upload Image", type=["jpg","png"])
     if uploaded:
         img = Image.open(uploaded).convert('L').resize((48,48))
@@ -166,7 +157,6 @@ elif page == "Test ML":
 # =========================
 elif page == "Test Neural Network":
     st.header("🖼️ Test Neural Network Model")
-
     uploaded = st.file_uploader("Upload Image", type=["jpg","png"])
     if uploaded:
         img = Image.open(uploaded).convert('L').resize((48,48))
