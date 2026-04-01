@@ -18,9 +18,12 @@ def load_model_from_drive(file_id):
     res = requests.get(url)
     return joblib.load(BytesIO(res.content))
 
-# ใส่ File ID ของโมเดลจาก Google Drive
-model_ml = load_model_from_drive("https://drive.google.com/file/d/1kKjdFPWTg4I01EGb0vxQLIA3smpHkebn/view?usp=sharing")
-model_nn = load_model_from_drive("https://drive.google.com/file/d/1RfiC2ZGh_idd4cwi2nsNw-2QKW65HZRQ/view?usp=sharing")
+# File ID ของ Google Drive
+MODEL_ML_ID = "1kKjdFPWTg4I01EGb0vxQLIA3smpHkebn"
+MODEL_NN_ID = "1RfiC2ZGh_idd4cwi2nsNw-2QKW65HZRQ"
+
+ML_PATH = "model/model_ml.pkl"
+NN_PATH = "model/model_nn.pkl"
 
 # =========================
 # HEADER
