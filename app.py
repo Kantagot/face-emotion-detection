@@ -19,15 +19,20 @@ def load_model_from_drive(file_id):
     res.raise_for_status()  # ตรวจสอบว่าโหลดสำเร็จ
     return joblib.load(BytesIO(res.content))
 
-# File ID ของ Google Drive (ของคุณ)
 MODEL_ML_ID = "1kKjdFPWTg4I01EGb0vxQLIA3smpHkebn"
 MODEL_NN_ID = "1RfiC2ZGh_idd4cwi2nsNw-2QKW65HZRQ"
 
-# โหลดโมเดล
-with st.spinner("Loading ML model..."):
-    model_ml = load_model_from_drive(MODEL_ML_ID)
-with st.spinner("Loading NN model..."):
-    model_nn = load_model_from_drive(MODEL_NN_ID)
+# =========================
+# LOAD MODELS ONCE AND CACHE
+# =========================
+@st.cache_data(show_spinner=True)
+def load_models():
+    ml = load_model_from_drive(MODEL_ML_ID)
+    nn = load_model_from_drive(MODEL_NN_ID)
+    return ml, nn
+
+with st.spinner("Loading models..."):
+    model_ml, model_nn = load_models()
 
 # =========================
 # HEADER
@@ -96,7 +101,7 @@ elif page == "Data Preparation":
     st.header("🛠️ Data Preparation Steps")
     steps = [
         "Convert to Grayscale ⚪",
-        "Resize to 48x48 📏",
+        "Resize to 224x224 📏",  # แก้ขนาดเป็น 224
         "Remove invalid images ❌",
         "Flatten images 🗜️",
         "Handle missing values (Mean Imputation) 💡",
@@ -131,7 +136,7 @@ elif page == "Neural Network":
     st.header("🧠 Neural Network Model (MLP)")
     st.subheader("Architecture")
     st.code("""
-Input Layer (2304 nodes)
+Input Layer (50176 nodes)  # 224*224
 ↓
 Hidden Layer 1 (128 nodes)
 ↓
@@ -150,12 +155,11 @@ elif page == "Test ML":
     st.header("🖼️ Test Machine Learning Model")
     uploaded = st.file_uploader("Upload Image", type=["jpg","png"])
     if uploaded:
-        img = Image.open(uploaded)
-        img_for_model = img.convert('L').resize((48,48))
-        img_arr = np.array(img_for_model).flatten()
+        img = Image.open(uploaded).convert('L').resize((224,224))  # แก้ขนาด 224x224
+        img_arr = np.array(img).flatten()
         col1, col2 = st.columns(2)
         with col1:
-            st.image(img, caption="Input Image", use_column_width=True)  # แสดงรูปชัด
+            st.image(img, caption="Input Image", use_column_width=True)
         with col2:
             pred = model_ml.predict([img_arr])
             st.success(f"Prediction: {pred[0]} 🎉")
@@ -167,12 +171,11 @@ elif page == "Test Neural Network":
     st.header("🖼️ Test Neural Network Model")
     uploaded = st.file_uploader("Upload Image", type=["jpg","png"])
     if uploaded:
-        img = Image.open(uploaded)
-        img_for_model = img.convert('L').resize((48,48))
-        img_arr = np.array(img_for_model).flatten()
+        img = Image.open(uploaded).convert('L').resize((224,224))  # แก้ขนาด 224x224
+        img_arr = np.array(img).flatten()
         col1, col2 = st.columns(2)
         with col1:
-            st.image(img, caption="Input Image", use_column_width=True)  # แสดงรูปชัด
+            st.image(img, caption="Input Image", use_column_width=True)
         with col2:
             pred = model_nn.predict([img_arr])
             st.success(f"Prediction: {pred[0]} 🎉")
